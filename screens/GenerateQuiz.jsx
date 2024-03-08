@@ -1,6 +1,6 @@
 import React from "react";
 import { ScrollView, StyleSheet, View, Image } from "react-native";
-import { Text, Button, TextInput } from "react-native-paper";
+import { Text, Button, TextInput, ActivityIndicator } from "react-native-paper";
 import { Formik } from "formik";
 import * as yup from "yup";
 import ScreenWrapper from "../components/ScreenWrapper";
@@ -8,6 +8,7 @@ import RadioGroup from "../components/RadioGroup";
 import Camera from "../components/Camera";
 import { useState } from "react";
 import generateQuiz from "../lib/generateQuiz";
+import { createQuiz, addQuestionsToQuiz } from "../lib/database";
 
 const difficultyOptions = [
   { label: "Easy", value: "easy" },
@@ -32,13 +33,33 @@ const GenerateQuiz = () => {
   const [images, setImages] = useState([]);
 
   const handleGenerateQuiz = async (values) => {
-    const data = await generateQuiz({
-      images,
-      description: values.description,
-      difficulty: values.difficulty,
-      duration: values.duration,
-    });
-    console.log(data);
+    try {
+      const questions = await generateQuiz({
+        images,
+        description: values.description,
+        difficulty: values.difficulty,
+        duration: values.duration,
+      });
+
+      // create a new quiz in the database
+      const quiz = await createQuiz({
+        title: values.title,
+        description: values.description,
+        difficulty: values.difficulty,
+        duration: values.duration,
+        attempts: 0,
+        totalQuestions: questions?.length || 0,
+      });
+
+      // add questions to the quiz
+      await addQuestionsToQuiz(quiz.id, questions);
+
+      // TODO: navigate to the quizes list
+
+      return;
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   if (isCameraOpen) {
@@ -84,8 +105,18 @@ const GenerateQuiz = () => {
             values,
             errors,
             touched,
+            isSubmitting,
           }) => (
             <View style={styles.formContainer}>
+              {isSubmitting && (
+                <View style={styles.loading}>
+                  <ActivityIndicator animating={isSubmitting} size="small" />
+                  <Text padding="16">
+                    Please wait while we generate the quiz for you
+                  </Text>
+                  <Text variant="labelSmall">This may take a few seconds</Text>
+                </View>
+              )}
               <Text style={styles.title}>Generate Quiz</Text>
               <TextInput
                 label="Quiz Title"
@@ -147,7 +178,7 @@ const GenerateQuiz = () => {
                 mode="contained"
                 onPress={handleSubmit}
               >
-                Generate Quiz
+                {isSubmitting ? "Generating Quiz..." : "Generate Quiz"}
               </Button>
             </View>
           )}
@@ -158,7 +189,7 @@ const GenerateQuiz = () => {
 };
 
 const styles = StyleSheet.create({
-  wrapper: { flex: 1, paddingTop: 30 },
+  wrapper: { flex: 1, paddingTop: 30, position: "relative" },
   formContainer: { flex: 1, padding: 8 },
   title: { fontSize: 24, fontWeight: "bold", marginVertical: 10 },
   textInput: { marginVertical: 10 },
@@ -170,6 +201,18 @@ const styles = StyleSheet.create({
   image: { width: "25%", aspectRatio: 1 },
   generateButton: { marginTop: 16 },
   error: { color: "red" },
+  loading: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    zIndex: 1000,
+  },
 });
 
 export default GenerateQuiz;
