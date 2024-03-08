@@ -1,10 +1,11 @@
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
-import { PaperProvider } from "react-native-paper";
 import {
   MD2DarkTheme as DefaultTheme,
   PaperProvider,
 } from "react-native-paper";
+import QuizzesList from "./screens/QuizzesList";
+import GenerateQuiz from "./screens/GenerateQuiz";
 
 const theme = {
   ...DefaultTheme,
@@ -13,10 +14,7 @@ const theme = {
 export default function App() {
   return (
     <PaperProvider theme={theme}>
-      <View style={styles.container}>
-        <Text>Open up App.js to start working on your app!</Text>
-        <StatusBar style="auto" />
-      </View>
+      <GenerateQuiz />
     </PaperProvider>
   );
 }
