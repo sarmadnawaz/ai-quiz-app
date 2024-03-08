@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import { ScrollView, StyleSheet, View, Image } from "react-native";
 import { Text, Button, TextInput } from "react-native-paper";
 import { Formik } from "formik";
 import * as yup from "yup";
 import ScreenWrapper from "../components/ScreenWrapper";
 import RadioGroup from "../components/RadioGroup";
+import Camera from "../components/Camera";
+import { useState } from "react";
+import generateQuiz from "../lib/generateQuiz";
 
 const difficultyOptions = [
   { label: "Easy", value: "easy" },
@@ -25,9 +28,37 @@ const validationSchema = yup.object().shape({
 });
 
 const GenerateQuiz = () => {
-  const handleGenerateQuiz = (values) => {
-    console.log(values);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [images, setImages] = useState([]);
+
+  const handleGenerateQuiz = async (values) => {
+    const data = await generateQuiz({
+      images,
+      description: values.description,
+      difficulty: values.difficulty,
+      duration: values.duration,
+    });
+    console.log(data);
   };
+
+  if (isCameraOpen) {
+    return (
+      <ScreenWrapper
+        keyboardShouldPersistTaps="always"
+        removeClippedSubviews={false}
+        contentContainerStyle={styles.wrapper}
+      >
+        <Camera
+          onComplete={(image) => {
+            setImages([...images, image]);
+            setIsCameraOpen(false);
+            return;
+          }}
+          onClose={() => setIsCameraOpen(false)}
+        />
+      </ScreenWrapper>
+    );
+  }
 
   return (
     <ScreenWrapper
@@ -42,9 +73,6 @@ const GenerateQuiz = () => {
             difficulty: "easy",
             duration: "2",
             description: "",
-            images: [
-              "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
-            ],
           }}
           validationSchema={validationSchema}
           onSubmit={handleGenerateQuiz}
@@ -97,7 +125,7 @@ const GenerateQuiz = () => {
                 />
                 <Text style={styles.label}>Add Images (Optional)</Text>
                 <View style={styles.imageContainer}>
-                  {values.images.map((image, index) => (
+                  {images.map((image, index) => (
                     <Image
                       key={index}
                       source={{ uri: image }}
@@ -105,7 +133,12 @@ const GenerateQuiz = () => {
                     />
                   ))}
                 </View>
-                <Button icon="image" mode="outlined" style={styles.imageButton}>
+                <Button
+                  icon="image"
+                  onPress={() => setIsCameraOpen(true)}
+                  mode="outlined"
+                  style={styles.imageButton}
+                >
                   <Text>Add Images</Text>
                 </Button>
               </View>

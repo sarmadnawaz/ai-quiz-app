@@ -3,35 +3,14 @@ import { useMemo } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { Text, Chip, useTheme, Card, Button } from "react-native-paper";
 import ScreenWrapper from "../components/ScreenWrapper";
+import { getQuizes } from "../lib/database";
+import { useEffect } from "react";
 
 const types = ["All", "Unattempted", "Attempted"];
 
-const quizzes = [
-  {
-    title: "Object Oriented Programming",
-    questions: 10,
-    time: 10,
-    difficulty: "Easy",
-    attempts: 2,
-    score: 7,
-    status: "Attempted",
-    description:
-      "This is a quiz on OOPs concepts, inheritance, and polymorphism in Java.",
-  },
-  {
-    title: "Data Structures",
-    questions: 15,
-    time: 15,
-    difficulty: "Medium",
-    attempts: 0,
-    score: 0,
-    status: "Unattempted",
-    description: "This is a quiz on Data Structures and Algorithms.",
-  },
-];
-
 const QuizzesList = () => {
   const { colors } = useTheme();
+  const [quizzes, setQuizzes] = React.useState([]);
   const [selectedType, setSelectedType] = React.useState(types[0]);
 
   const filteredQuizzes = useMemo(() => {
@@ -39,11 +18,24 @@ const QuizzesList = () => {
       ? quizzes
       : quizzes.filter((quiz) => {
           if (selectedType === "Unattempted") {
-            return quiz.status === "Unattempted";
+            return quiz.status === "Unattempted".toLowerCase();
           }
-          return quiz.status === "Attempted";
+          return quiz.status === "Attempted".toLowerCase();
         });
   }, [selectedType, quizzes]);
+
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      const data = await getQuizes();
+      setQuizzes(data);
+    };
+
+    fetchQuizzes();
+
+    return () => {
+      setQuizzes([]);
+    };
+  }, []);
 
   return (
     <ScreenWrapper contentContainerStyle={styles.content}>
@@ -80,7 +72,7 @@ const QuizzesList = () => {
                 <Text style={styles.infoText}>
                   Score:{" "}
                   <Text style={styles.infoHighlight}>
-                    {quiz.score}/{quiz.questions}
+                    {quiz.score}/{quiz.totalQuestions}
                   </Text>
                 </Text>
               </View>
@@ -91,13 +83,13 @@ const QuizzesList = () => {
                 </Text>
                 <Text style={styles.infoText}>
                   Time:{" "}
-                  <Text style={styles.infoHighlight}>{quiz.time} mins</Text>
+                  <Text style={styles.infoHighlight}>{quiz.time} min</Text>
                 </Text>
               </View>
             </Card.Content>
             <Card.Actions>
               <Button style={styles.button}>
-                {quiz.status === "Attempted" ? "Retake" : "Attempt Quiz"}
+                {quiz.status === "Attempted" ? "Retake" : "Start Quiz"}
               </Button>
             </Card.Actions>
           </Card>
