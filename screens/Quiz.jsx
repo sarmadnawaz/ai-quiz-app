@@ -11,6 +11,8 @@ import ScreenWrapper from "../components/ScreenWrapper";
 import RadioGroup from "../components/RadioGroup";
 import { useEffect } from "react";
 import { getQuiz, updateQuiz } from "../lib/database";
+import { useQuizzes } from "../context/QuizzesProvider";
+import Modal from "../components/Modal";
 
 const evaluateQuiz = (questions = [], answers = {}) => {
   let score = 0;
@@ -22,83 +24,111 @@ const evaluateQuiz = (questions = [], answers = {}) => {
   return score;
 };
 
-const Quiz = () => {
-  const [quizId, setQuizId] = React.useState(18);
+const Quiz = ({ navigation, route }) => {
+  const { quizId } = route.params;
+  const { fetchQuizzes } = useQuizzes();
+  const [status, setStatus] = React.useState("idle");
+  const [score, setScore] = React.useState(0);
   const [currentQuestionNo, setCurrentQuestionNo] = React.useState(1);
   const [anwers, setAnswers] = React.useState({});
-  const [status, setStatus] = React.useState("loading");
   const [quiz, setQuiz] = React.useState(null);
-  const [message, setMessage] = React.useState("");
+
+  useEffect(() => {
+    async function updateQuizMutation() {
+      const score = evaluateQuiz(quiz?.questions, anwers);
+      setScore(score);
+      await updateQuiz({ ...quiz, score });
+      fetchQuizzes();
+      setStatus("completed");
+      return;
+    }
+
+    if (status === "submitted") {
+      updateQuizMutation();
+    }
+  }, [status]);
+
+  useEffect(() => {
+    async function fetchQuiz() {
+      const quiz = await getQuiz(quizId);
+      setQuiz(quiz);
+      setStatus("ready");
+    }
+
+    if (status === "idle" && quizId) {
+      fetchQuiz();
+    }
+  }, [status, quizId]);
 
   const handleOnQuestionChange = (questionNo) => {
     if (questionNo > quiz?.questions?.length || questionNo < 1) return;
     setCurrentQuestionNo(questionNo);
   };
 
-  useEffect(() => {
-    async function updateQuizMutation() {
-      setStatus("submitting");
-      const score = evaluateQuiz(quiz?.questions, anwers);
-      await updateQuiz({ ...quiz, score });
-      setMessage(`You scored ${score} out of ${quiz?.questions?.length}`);
-      setStatus("submitted");
-      return;
-    }
-
-    if (status === "completed") {
-      updateQuizMutation();
-    }
-
-    return () => {
-      setStatus("idle");
-    };
-  }, [status]);
-
-  useEffect(() => {
-    async function fetchQuiz() {
-      const quiz = await getQuiz(quizId);
-      console.log(quiz);
-      setQuiz(quiz);
-      setStatus("idle");
-    }
-
-    fetchQuiz();
-  }, []);
-
-  const LoadingState = ({ text }) => (
-    <View style={styles.loadingContainer}>
-      <ActivityIndicator animating={true} />
-      <Text>{text}</Text>
-    </View>
-  );
-
-  const CompletedState = ({ text }) => (
-    <View style={styles.finishedStateContainer}>
-      <View
-        style={{
-          backgroundColor: "#000",
-          padding: 20,
-          borderRadius: 10,
-          alignItems: "center",
-          flexDirection: "column",
-          gap: 10,
+  if (status === "not-found") {
+    return (
+      <Modal
+        onAction={() => {
+          setStatus("idle");
+          navigation.navigate("Quizzes");
         }}
+        actionButtonTitle="Go back"
       >
-        <Text>Wow 🎉</Text>
-        <Text>{text}</Text>
-        <Button onPress={() => setStatus("idle")}>Ok</Button>
-      </View>
-    </View>
-  );
+        <Text>Didn't find the quiz you are looking for 😑</Text>
+      </Modal>
+    );
+  }
+
+  if (status === "idle") {
+    return (
+      <Modal>
+        <ActivityIndicator animating={true} />
+        <Text>Loading quiz... Plz wait</Text>
+      </Modal>
+    );
+  }
+
+  if (status === "completed") {
+    return (
+      <Modal
+        onAction={() => {
+          setStatus("idle");
+          navigation.navigate("Quizzes");
+        }}
+        actionButtonTitle="Go back"
+      >
+        <View paddingVertical={20}>
+          {score / quiz?.questions?.length > 0.5 ? (
+            <Text>
+              You scored {score} out of {quiz?.questions?.length}. Well done!
+              🎉🎉
+            </Text>
+          ) : (
+            <Text>
+              Scored {score} out of {quiz?.questions?.length}. Better luck next
+              time!
+            </Text>
+          )}
+        </View>
+      </Modal>
+    );
+  }
+
+  if (status === "submitted") {
+    return (
+      <Modal>
+        <ActivityIndicator animating={true} />
+        <Text>Submitting your quiz... Plz wait</Text>
+      </Modal>
+    );
+  }
 
   return (
-    <ScreenWrapper paddingTop={40} contentContainerStyle={styles.content}>
-      {status === "submitting" && (
-        <LoadingState text="Submitting your quiz..." />
-      )}
-      {status === "loading" && <LoadingState text="Loading quiz..." />}
-      {status === "submitted" && <CompletedState text="Quiz submitted" />}
-      <Text style={styles.titleMain}>{quiz ? quiz?.title : "Loading..."}</Text>
+    <ScreenWrapper contentContainerStyle={styles.content}>
+      <View marginBottom={40} marginTop={10}>
+        <Text style={styles.heading}>Quiz</Text>
+        <Text style={styles.subHeading}>{quiz?.title}</Text>
+      </View>
       <Card>
         <DataTable>
           <DataTable.Header>
@@ -139,9 +169,10 @@ const Quiz = () => {
         </DataTable>
       </Card>
       <Button
-        margin={30}
+        marginTop={40}
+        marginHorizontal={10}
         mode="contained"
-        onPress={() => setStatus("completed")}
+        onPress={() => setStatus("submitted")}
       >
         Submit Quiz
       </Button>
@@ -155,48 +186,21 @@ const styles = StyleSheet.create({
     padding: 8,
     position: "relative",
   },
-  first: {
-    flex: 1,
-  },
   question: {
     fontSize: 18,
     fontWeight: "semibold",
   },
-  title: {
-    marginVertical: 16,
-    fontSize: 16,
-    fontWeight: "medium",
-    marginBottom: 16,
+  constainer: {
+    flex: 1,
+    padding: 10,
   },
-  titleMain: {
+  heading: {
+    fontWeight: "700",
+    fontSize: 24,
+    marginVertical: 5,
+  },
+  subHeading: {
     fontSize: 18,
-    fontWeight: "semibold",
-    marginBottom: 16,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    zIndex: 100,
-    gap: 10,
-  },
-  finishedStateContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    zIndex: 100,
   },
 });
 

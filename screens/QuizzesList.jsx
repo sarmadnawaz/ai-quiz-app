@@ -1,16 +1,28 @@
 import * as React from "react";
 import { useMemo } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
-import { Text, Chip, useTheme, Card, Button } from "react-native-paper";
+import {
+  Text,
+  Chip,
+  useTheme,
+  Card,
+  Button,
+  ActivityIndicator,
+} from "react-native-paper";
 import ScreenWrapper from "../components/ScreenWrapper";
 import { getQuizes } from "../lib/database";
 import { useEffect } from "react";
+import { useUser } from "../context/UserProvider";
+import Modal from "../components/Modal";
+import globalStyles from "../styles";
+import { useQuizzes } from "../context/QuizzesProvider";
 
 const types = ["All", "Unattempted", "Attempted"];
 
-const QuizzesList = () => {
+const QuizzesList = ({ navigation }) => {
+  const user = useUser();
   const { colors } = useTheme();
-  const [quizzes, setQuizzes] = React.useState([]);
+  const { quizzes, status } = useQuizzes();
   const [selectedType, setSelectedType] = React.useState(types[0]);
 
   const filteredQuizzes = useMemo(() => {
@@ -24,18 +36,41 @@ const QuizzesList = () => {
         });
   }, [selectedType, quizzes]);
 
-  useEffect(() => {
-    const fetchQuizzes = async () => {
-      const data = await getQuizes();
-      setQuizzes(data);
-    };
+  if (status === "idle") {
+    return (
+      <Modal>
+        <ActivityIndicator animating={true} />
+        <Text>Fetching quizzes...</Text>
+      </Modal>
+    );
+  }
 
-    fetchQuizzes();
-
-    return () => {
-      setQuizzes([]);
-    };
-  }, []);
+  if (!quizzes.length) {
+    return (
+      <Modal
+        actionButtonTitle="Generate a Quiz"
+        onAction={() => navigation.navigate("GenearteQuiz")}
+      >
+        <Text
+          style={{
+            ...globalStyles.heading,
+            textAlign: "center",
+          }}
+        >
+          No quizzes found 😑
+        </Text>
+        <Text
+          marginBottom={20}
+          style={{
+            ...globalStyles.subHeading,
+            textAlign: "center",
+          }}
+        >
+          Generate a quiz to boost your learning experience.
+        </Text>
+      </Modal>
+    );
+  }
 
   return (
     <ScreenWrapper contentContainerStyle={styles.content}>
@@ -58,23 +93,33 @@ const QuizzesList = () => {
         contentContainerStyle={styles.content}
       >
         {filteredQuizzes?.map((quiz, index) => (
-          <Card key={index} style={styles.card}>
+          <Card
+            onPress={() => navigation.navigate("Quiz", { quizId: quiz.id })}
+            key={index}
+            style={styles.card}
+          >
             <Card.Title title={quiz.title} />
-            <Card.Content>
-              <Text style={styles.description}>{quiz.description}</Text>
-            </Card.Content>
             <Card.Content style={styles.cardContent}>
               <View style={styles.infoContainer}>
                 <Text style={styles.infoText}>
                   Attempts:{" "}
                   <Text style={styles.infoHighlight}>{quiz.attempts}</Text>
                 </Text>
-                <Text style={styles.infoText}>
-                  Score:{" "}
-                  <Text style={styles.infoHighlight}>
-                    {quiz.score ? `${quiz.score}/${quiz.totalQuestions}` : "N/A"}
+                {quiz.status === "attempted" ? (
+                  <Text style={styles.infoText}>
+                    Score:{" "}
+                    <Text style={styles.infoHighlight}>
+                      {quiz.score
+                        ? `${quiz.score}/${quiz.totalQuestions}`
+                        : "N/A"}
+                    </Text>
                   </Text>
-                </Text>
+                ) : (
+                  <Text style={styles.infoText}>
+                    Status :{" "}
+                    <Text style={styles.infoHighlight}>Unattempted</Text>
+                  </Text>
+                )}
               </View>
               <View style={styles.infoContainer}>
                 <Text style={styles.infoText}>
@@ -102,6 +147,8 @@ const QuizzesList = () => {
 const styles = StyleSheet.create({
   content: {
     padding: 4,
+    position: "relative",
+    flex: 1,
   },
   title: {
     paddingTop: 30,

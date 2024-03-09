@@ -6,6 +6,7 @@ import QuizzesList from "./screens/QuizzesList";
 import AuthNavigation from "./navigation/AuthNavigation";
 import ScreenWrapper from "./components/ScreenWrapper";
 import { UserProvider, useUser } from "./context/UserProvider";
+import MainNavigation from "./navigation/MainNavigation";
 
 const theme = {
   ...DefaultTheme,
@@ -14,7 +15,7 @@ const theme = {
 function App() {
   const user = useUser();
 
-  return user ? <QuizzesList /> : <AuthNavigation />;
+  return user ? <MainNavigation /> : <AuthNavigation />;
 }
 
 export default () => {

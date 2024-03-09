@@ -15,7 +15,7 @@ const RadioGroup = ({ options, value, onChange, flexDirection = "row" }) => {
             return (
               <View
                 flexDirection="row"
-                gap={4}
+                gap={2}
                 key={idx}
                 alignItems="center"
                 justifyContent={
