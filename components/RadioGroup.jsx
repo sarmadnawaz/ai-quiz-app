@@ -2,7 +2,7 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import { List, RadioButton, Text } from "react-native-paper";
 
-const RadioGroup = ({ options, value, onChange }) => {
+const RadioGroup = ({ options, value, onChange, flexDirection = "row" }) => {
   return (
     <List.Section>
       <RadioButton.Group
@@ -10,10 +10,18 @@ const RadioGroup = ({ options, value, onChange }) => {
         style={styles.row}
         onValueChange={(value) => onChange(value)}
       >
-        <View style={styles.row}>
+        <View flexDirection={flexDirection} style={styles.row}>
           {options.map((option, idx) => {
             return (
-              <View flexDirection="row" gap={4} key={idx} alignItems="center">
+              <View
+                flexDirection="row"
+                gap={4}
+                key={idx}
+                alignItems="center"
+                justifyContent={
+                  flexDirection === "row" ? "flex-start" : "space-between"
+                }
+              >
                 <Text>{option?.label}</Text>
                 <RadioButton value={option?.value} />
               </View>
@@ -27,8 +35,7 @@ const RadioGroup = ({ options, value, onChange }) => {
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: "row",
-    alignItems: "center",
+    paddingHorizontal: 20,
     gap: 10,
   },
 });

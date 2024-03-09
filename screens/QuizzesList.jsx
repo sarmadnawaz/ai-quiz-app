@@ -72,7 +72,7 @@ const QuizzesList = () => {
                 <Text style={styles.infoText}>
                   Score:{" "}
                   <Text style={styles.infoHighlight}>
-                    {quiz.score}/{quiz.totalQuestions}
+                    {quiz.score ? `${quiz.score}/${quiz.totalQuestions}` : "N/A"}
                   </Text>
                 </Text>
               </View>
