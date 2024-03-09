@@ -1,3 +1,5 @@
+import * as FileSystem from "expo-file-system";
+
 export function sortByTimestampPTZ(array, key) {
   try {
     return array.sort((a, b) => {
@@ -9,3 +11,15 @@ export function sortByTimestampPTZ(array, key) {
     return array;
   }
 }
+
+export const fileToBase64 = async (filePath) => {
+  try {
+    const response = await FileSystem.readAsStringAsync(filePath, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    return response;
+  } catch (error) {
+    console.error("Error converting file to Base64:", error);
+    return null;
+  }
+};

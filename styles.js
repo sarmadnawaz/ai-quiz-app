@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 const styles = StyleSheet.create({
   constainer: {
     flex: 1,
-    padding: 10,
+    padding: 8,
   },
   heading: {
     fontWeight: "600",
@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   subHeading: {
-    fontSize: 18,
+    fontSize: 16,
   },
 });
 

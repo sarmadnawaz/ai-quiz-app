@@ -7,6 +7,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import GenerateQuiz from "../screens/GenerateQuiz";
 import { QuizzesProvider } from "../context/QuizzesProvider";
 import Home from "../screens/Home";
+import UpdateProfile from "../screens/UpdateProfile";
 
 const Tab = createBottomTabNavigator();
 
@@ -69,7 +70,7 @@ export default function BottomNavigationBarExample() {
           />
           <Tab.Screen
             name="Profile"
-            component={Home}
+            component={UpdateProfile}
             options={{
               tabBarIcon: ({ color, size }) => {
                 return <Icon name="person" size={size} color={color} />;
