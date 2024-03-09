@@ -8,7 +8,7 @@ const QuizzesProvider = ({ children }) => {
   const user = useUser();
   const [status, setStatus] = React.useState("idle");
   const [quizzes, setQuizzes] = React.useState([]);
-
+  console.log(user)
   const fetchQuizzes = async () => {
     if (status !== "idle") setStatus("idle");
     const data = await getQuizes(user.id);

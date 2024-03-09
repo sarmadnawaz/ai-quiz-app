@@ -22,7 +22,7 @@ const RadioGroup = ({ options, value, onChange, flexDirection = "row" }) => {
                   flexDirection === "row" ? "flex-start" : "space-between"
                 }
               >
-                <Text>{option?.label}</Text>
+                <Text maxWidth="90%">{option?.label}</Text>
                 <RadioButton value={option?.value} />
               </View>
             );

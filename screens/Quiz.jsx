@@ -16,8 +16,10 @@ import Modal from "../components/Modal";
 
 const evaluateQuiz = (questions = [], answers = {}) => {
   let score = 0;
+  console.log(questions);
+  console.log(answers);
   questions?.forEach((question, idx) => {
-    if (question.correctAnswer === answers[idx + 1]) {
+    if (question.correctAnswer === answers[String(idx + 1)]) {
       score++;
     }
   });
@@ -133,7 +135,6 @@ const Quiz = ({ navigation, route }) => {
         <DataTable>
           <DataTable.Header>
             <DataTable.Title>Question No: {currentQuestionNo}</DataTable.Title>
-            <DataTable.Title>Time time: {quiz?.time} minutes</DataTable.Title>
           </DataTable.Header>
 
           <DataTable.Row marginVertical={40}>

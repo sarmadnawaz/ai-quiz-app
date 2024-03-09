@@ -18,6 +18,7 @@ import { createQuiz, addQuestionsToQuiz } from "../lib/database";
 import globalStyles from "../styles";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useQuizzes } from "../context/QuizzesProvider";
+import { useUser } from "../context/UserProvider";
 
 const difficultyOptions = [
   { label: "Easy", value: "easy" },
@@ -34,18 +35,17 @@ const noOfQuestions = [
 
 const validationSchema = yup.object().shape({
   title: yup.string().required("Title is required"),
-  difficulty: yup.string().required("Difficulty is required"),
-  duration: yup.string().required("Duration is required"),
 });
 
 const GenerateQuiz = ({ navigation }) => {
   const { fetchQuizzes } = useQuizzes();
+  const user = useUser();
   const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   const handleGenerateQuiz = async (values, options) => {
     try {
       const questions = await generateQuiz({
-        images: values.images,
+        images: values.images || [],
         description: values.description,
         difficulty: values.difficulty,
         questions: values.questions,
@@ -59,6 +59,7 @@ const GenerateQuiz = ({ navigation }) => {
         attempts: 0,
         status: "unattempted",
         totalQuestions: questions?.length || 0,
+        user: user?.id,
       });
 
       // add questions to the quiz
