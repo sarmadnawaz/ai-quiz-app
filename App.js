@@ -1,31 +1,36 @@
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
-import { PaperProvider } from "react-native-paper";
 import {
   MD2DarkTheme as DefaultTheme,
   PaperProvider,
 } from "react-native-paper";
+import QuizzesList from "./screens/QuizzesList";
+import AuthNavigation from "./navigation/AuthNavigation";
+import ScreenWrapper from "./components/ScreenWrapper";
+import { UserProvider, useUser } from "./context/UserProvider";
+import MainNavigation from "./navigation/MainNavigation";
 
 const theme = {
   ...DefaultTheme,
 };
 
-export default function App() {
-  return (
-    <PaperProvider theme={theme}>
-      <View style={styles.container}>
-        <Text>Open up App.js to start working on your app!</Text>
-        <StatusBar style="auto" />
-      </View>
-    </PaperProvider>
-  );
+function App() {
+  const user = useUser();
+
+  return user ? <MainNavigation /> : <AuthNavigation />;
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+export default () => {
+  return (
+    <PaperProvider theme={theme}>
+      <ScreenWrapper
+        contentContainerStyle={{
+          flex: 1,
+          paddingTop: 30,
+        }}
+      >
+        <UserProvider>
+          <App />
+        </UserProvider>
+      </ScreenWrapper>
+    </PaperProvider>
+  );
+};
