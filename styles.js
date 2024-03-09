@@ -6,7 +6,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   heading: {
-    fontWeight: "700",
+    fontWeight: "600",
     fontSize: 24,
     marginVertical: 5,
   },

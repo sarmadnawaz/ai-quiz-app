@@ -10,30 +10,21 @@ import {
   ActivityIndicator,
 } from "react-native-paper";
 import ScreenWrapper from "../components/ScreenWrapper";
-import { getQuizes } from "../lib/database";
-import { useEffect } from "react";
-import { useUser } from "../context/UserProvider";
 import Modal from "../components/Modal";
 import globalStyles from "../styles";
 import { useQuizzes } from "../context/QuizzesProvider";
 
-const types = ["All", "Unattempted", "Attempted"];
+const types = ["all", "unattempted", "attempted"];
 
 const QuizzesList = ({ navigation }) => {
-  const user = useUser();
   const { colors } = useTheme();
   const { quizzes, status } = useQuizzes();
   const [selectedType, setSelectedType] = React.useState(types[0]);
 
   const filteredQuizzes = useMemo(() => {
-    return selectedType === "All"
+    return selectedType === "all"
       ? quizzes
-      : quizzes.filter((quiz) => {
-          if (selectedType === "Unattempted") {
-            return quiz.status === "Unattempted".toLowerCase();
-          }
-          return quiz.status === "Attempted".toLowerCase();
-        });
+      : quizzes.filter((quiz) => quiz.status === selectedType);
   }, [selectedType, quizzes]);
 
   if (status === "idle") {
@@ -57,7 +48,7 @@ const QuizzesList = ({ navigation }) => {
             textAlign: "center",
           }}
         >
-          No quizzes found 😑
+          No quizzes found 🙂
         </Text>
         <Text
           marginBottom={20}
@@ -84,7 +75,7 @@ const QuizzesList = ({ navigation }) => {
             onPress={() => setSelectedType(type)}
             style={styles.chip}
           >
-            {type}
+            {type[0]?.toLocaleUpperCase() + type?.slice(1)}
           </Chip>
         ))}
       </View>

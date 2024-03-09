@@ -25,10 +25,11 @@ const difficultyOptions = [
   { label: "Hard", value: "hard" },
 ];
 
-const durationOptions = [
-  { label: "2 min", value: "2" },
-  { label: "5 min", value: "5" },
-  { label: "10 min", value: "10" },
+const noOfQuestions = [
+  { label: "5", value: "5" },
+  { label: "10", value: "10" },
+  { label: "15", value: "15" },
+  { label: "20", value: "20" },
 ];
 
 const validationSchema = yup.object().shape({
@@ -47,7 +48,7 @@ const GenerateQuiz = ({ navigation }) => {
         images: values.images,
         description: values.description,
         difficulty: values.difficulty,
-        duration: values.duration,
+        questions: values.questions,
       });
 
       // create a new quiz in the database
@@ -55,7 +56,6 @@ const GenerateQuiz = ({ navigation }) => {
         title: values.title,
         description: values.description,
         difficulty: values.difficulty,
-        duration: values.duration,
         attempts: 0,
         status: "unattempted",
         totalQuestions: questions?.length || 0,
@@ -84,7 +84,7 @@ const GenerateQuiz = ({ navigation }) => {
         initialValues={{
           title: "",
           difficulty: "easy",
-          duration: "2",
+          questions: "5",
           description: "",
           images: [],
         }}
@@ -99,11 +99,12 @@ const GenerateQuiz = ({ navigation }) => {
           errors,
           touched,
           isSubmitting,
+          setFieldValue,
         }) =>
           isCameraOpen ? (
             <Camera
               onComplete={(image) => {
-                handleChange("images")(images.concat(image));
+                setFieldValue("images", [...(values?.images || []), image]);
                 setIsCameraOpen(false);
                 return;
               }}
@@ -147,8 +148,9 @@ const GenerateQuiz = ({ navigation }) => {
                   />
                   <Text style={styles.label}>Content Images (Optional)</Text>
                   <View style={styles.imageContainer}>
-                    {images.map((image, index) => (
+                    {values?.images?.map((image, index) => (
                       <View
+                        key={index}
                         style={{
                           width: 100,
                           height: 100,
@@ -156,15 +158,12 @@ const GenerateQuiz = ({ navigation }) => {
                           position: "relative",
                         }}
                       >
-                        <Image
-                          key={index}
-                          source={{ uri: image }}
-                          style={styles.image}
-                        />
+                        <Image source={{ uri: image }} style={styles.image} />
                         <TouchableOpacity
                           onPress={() =>
-                            handleChange("images")(
-                              images.filter((_, i) => i !== index)
+                            setFieldValue(
+                              "images",
+                              values?.images?.filter((_, i) => i !== index)
                             )
                           }
                           style={styles.closeIcon}
@@ -192,11 +191,11 @@ const GenerateQuiz = ({ navigation }) => {
                   />
                 </View>
                 <View flexDirection="row" gap={8}>
-                  <Text style={styles.label}>Duration</Text>
+                  <Text style={styles.label}>Questions</Text>
                   <RadioGroup
-                    options={durationOptions}
-                    value={values.duration}
-                    onChange={handleChange("duration")}
+                    options={noOfQuestions}
+                    value={values.questions}
+                    onChange={handleChange("questions")}
                   />
                 </View>
                 <Button

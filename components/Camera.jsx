@@ -138,6 +138,7 @@ const ExpoCamera = ({ onComplete = () => {}, onClose = () => {} }) => {
         />
       )}
       <Button
+        disabled={isLoading}
         style={{
           position: "absolute",
           bottom: 10,
@@ -151,10 +152,10 @@ const ExpoCamera = ({ onComplete = () => {}, onClose = () => {} }) => {
         {isLoading ? "Capturing..." : "Capture"}
       </Button>
       <View style={styles.cameraButtons}>
-        <Button onPress={onClose}>
+        <Button disabled={isLoading} onPress={onClose}>
           <Icon name="close" size={32} />
         </Button>
-        <Button onPress={flipCamera}>
+        <Button disabled={isLoading} onPress={flipCamera}>
           <Icon name="reload1" size={32} />
         </Button>
       </View>
